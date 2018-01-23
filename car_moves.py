@@ -64,7 +64,7 @@ def turn_around(car, radius, theta1, center, V, delta, dt):
     return shift, theta1
 
 
-if __name__ == "__main__":
+def test_turn_around():
     # Model parameters
     L1 = 2.2
     L2 = 1.2
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # Simulation parameters
     dt = 0.1
-    steps = 1000
+    steps = 100
 
     fig, axis = plt.subplots(1)
     plt.gca().set_aspect('equal', adjustable='box')
@@ -95,19 +95,69 @@ if __name__ == "__main__":
     radius = turning_radius(my_car, delta)
     center = position + turning_center(my_car, radius, theta1, delta)
 
-
-    for i in xrange(10):
-        if delta > 0:
-            sign = -1
-        else:
-            sign = +1
+    for i in xrange(steps):
         axis.plot(center[0], center[1], color='red', marker=".", markersize=3)
         radius = turning_radius(my_car, delta)
         center = position + turning_center(my_car, radius, theta1, delta)
         print radius, center
-        shift, theta1 = turn_around(my_car, radius, theta1, center, V, delta, 0.1)
+        shift, theta1 = turn_around(my_car, radius, theta1, center, V, delta,
+                                    dt)
         axis.plot(shift[0], shift[1], color='blue', marker=".", markersize=3)
         print center
         position = shift
 
     plt.show()
+
+
+def test_fix_large_phi():
+    # Model parameters
+    L1 = 2.2
+    L2 = 1.2
+    L3 = 2
+    V = -10
+    delta = 0.2
+
+    # Simulation parameters
+    dt = 0.1
+    steps = 100
+
+    fig, axis = plt.subplots(1)
+    plt.gca().set_aspect('equal', adjustable='box')
+    axis.set_xlim(0, 30)
+    axis.set_ylim(0, 30)
+    my_car = Car(L1, L2, axis, fig)
+    my_trailer = Trailer(L3, axis, fig)
+
+    my_car.initiate()
+    my_trailer.initiate()
+
+    theta1 = 0.1
+    phi = 0.5
+    theta2 = theta1 + phi
+    position = np.array((15, 15))
+    my_car._update(position, theta1, delta)
+    my_trailer._update(position, theta2)
+
+    points = []
+
+    radius = turning_radius(my_car, delta)
+    center = position + turning_center(my_car, radius, theta1, delta)
+
+    for i in xrange(steps):
+        radius = turning_radius(my_car, delta)
+        center = current_position + turning_center(my_car, radius, theta1, delta)
+        current_position, theta1 = turn_around(my_car, radius, theta1,
+                                               center, V, delta, dt)
+        phi = phi_predictor(phi, V, my_car.L1, my_car.L2,
+                            trailer.L3, delta, dt)
+        print "phi", phi
+        theta2 = abs_1st_period_angle(theta1 - phi)
+        points.append((current_position, theta1, theta2, delta))
+
+
+    plt.show()
+
+
+if __name__ == "__main__":
+    #test_turn_around()
+    test_fix_large_phi()

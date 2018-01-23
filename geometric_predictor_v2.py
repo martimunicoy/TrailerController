@@ -7,8 +7,8 @@ from animation import Car, Trailer, Animation
 import numpy as np
 
 # Constants
-CONTROLLER_THRESHOLD = 0.5
-CONTROLLER_MAX_ANGLE = 0.1
+CONTROLLER_THRESHOLD = 0.1
+CONTROLLER_MAX_ANGLE = 0.2
 
 # Initial variables
 initial_phi = 0
@@ -197,6 +197,10 @@ def turn_around(car, radius, theta1, center, V, delta, dt):
     # Get new angle theta1
     theta1 -= arc
 
+    # test!
+    theta1 = abs_1st_period_angle(theta1)
+    # test!
+
     # Get shift according to theta1
     dx = hitch_radius * cos(theta1 + (np.pi / 2 + alpha) * sign)
     dy = hitch_radius * sin(theta1 + (np.pi / 2 + alpha) * sign)
@@ -269,7 +273,12 @@ class Path():
         current_position = self.position
         theta1 = self.trajectory.in_theta1
         phi = self.trajectory.in_phi
+        # I think this formula is totally wrong!
+        # It should be: theta2 = theta1 + phi
         theta2 = abs_1st_period_angle(theta1 - phi)
+        print "phi", phi
+        print "theta1", theta1
+        print "theta2", theta2
         self.sim_points.append((current_position, theta1, theta2, 0))
 
         # Initialize variables for the loop
@@ -301,6 +310,7 @@ class Path():
             if dist < CONTROLLER_THRESHOLD:
                 # If this is the case and no points are left, finish loop
                 if len(self.trajectory_points) == 0:
+                    print "Done!"
                     break
                 # If there are remaining points, go to the next one
                 goal_point = self.trajectory_points.pop(0)
@@ -313,24 +323,33 @@ class Path():
             """
             """
             #Improve!
-            while (np.abs(phi - np.pi) > CONTROLLER_MAX_ANGLE):
-                if phi < np.pi:
-                    delta_phi = 0.05
-                else:
-                    delta_phi = -0.05
+            if (np.abs(phi -np.pi) > CONTROLLER_MAX_ANGLE):
+                k = 0
+                while (np.abs(phi - np.pi) > CONTROLLER_MAX_ANGLE / 2):
+                    print phi
+                    if phi < np.pi:
+                        delta_phi = 0.05
+                    else:
+                        delta_phi = -0.05
 
-                delta = get_delta_from_phi(delta_phi, phi, V,
-                                           self.car.L1, self.car.L2,
-                                           self.trailer.L3, self.dt)
-                # Update state
-                radius = turning_radius(self.car, delta)
-                center = current_position + turning_center(self.car, radius, theta1, delta)
-                current_position, theta1 = turn_around(self.car, radius, theta1,
-                                                       center, V, delta, 0.1)
-                phi = phi_predictor(phi, V, self.car.L1, self.car.L2,
-                                    self.trailer.L3, delta, self.dt)
-                theta2 = abs_1st_period_angle(theta1 - phi)
-                self.sim_points.append((current_position, theta1, theta2, delta))
+                    delta = get_delta_from_phi(delta_phi, phi, V,
+                                               self.car.L1, self.car.L2,
+                                               self.trailer.L3, self.dt)
+                    # Update state
+                    radius = turning_radius(self.car, delta)
+                    center = current_position + turning_center(self.car, radius, theta1, delta)
+                    current_position, theta1 = turn_around(self.car, radius, theta1,
+                                                           center, V, delta, dt)
+                    phi = phi_predictor(phi, V, self.car.L1, self.car.L2,
+                                        self.trailer.L3, delta, self.dt)
+                    # I think this formula is totally wrong!
+                    # It should be: theta2 = theta1 + phi
+                    theta2 = abs_1st_period_angle(theta1 - phi)
+                    print "theta1", theta1, "phi", phi, "theta2", theta2
+                    self.sim_points.append((current_position, theta1, theta2, delta))
+                    k += 1
+                    if k > 0:
+                        break
 
             delta = get_delta_from_phi(delta_phi, phi, V,
                                        self.car.L1, self.car.L2,
@@ -351,6 +370,8 @@ class Path():
                                                    center, V, delta, 0.1)
             phi = phi_predictor(phi, V, self.car.L1, self.car.L2,
                                 self.trailer.L3, delta, self.dt)
+            # I think this formula is totally wrong!
+            # It should be: theta2 = theta1 + phi
             theta2 = abs_1st_period_angle(theta1 - phi)
             self.sim_points.append((current_position, theta1, theta2, delta))
 
@@ -513,12 +534,12 @@ if __name__ == "__main__":
     # my_path.controller(V, 1000)
 
     # Create trajectory points
-    my_trajectory = Trajectory(type='linear', num_points=100,
+    my_trajectory = Trajectory(type='circular', num_points=100,
                                in_position=np.array((20, 10)))
     my_trajectory.draw(axis)
 
     # Simulate path
-    my_path = Path(my_car, my_trailer, dt=0.025, def_steps=100, def_V=V)
+    my_path = Path(my_car, my_trailer, dt=0.025, def_steps=1000, def_V=V)
     my_path.add_traj(my_trajectory)
     my_path.draw(axis)
     my_path.simulate()

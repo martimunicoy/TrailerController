@@ -1,15 +1,10 @@
-from numpy import sin, tan, cos
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle, Circle
 from matplotlib.transforms import Affine2D
-from matplotlib.animation import FuncAnimation
-import numpy as np
+from numpy import sin, cos
 
 # Constants
 RAD_TO_DEG = 57.2957795131
-
-# Initial variables
-initial_phi = 0
 
 
 class Animation:
@@ -114,10 +109,10 @@ class Car:
         x, y = xy
         sin_hitch = self.hitch_length * sin(theta1)
         cos_hitch = self.hitch_length * cos(theta1)
-        sin_L2 = L2 * sin(theta1)
-        cos_L2 = L2 * cos(theta1)
-        sin_L1L2 = (L1 + L2) * sin(theta1)
-        cos_L1L2 = (L1 + L2) * cos(theta1)
+        sin_L2 = self.L2 * sin(theta1)
+        cos_L2 = self.L2 * cos(theta1)
+        sin_L1L2 = (self.L1 + self.L2) * sin(theta1)
+        cos_L1L2 = (self.L1 + self.L2) * cos(theta1)
         sin_semi_height = self.height / 2. * sin(theta1)
         cos_semi_height = self.height / 2. * cos(theta1)
         sin_semi_extra_height = (self.height / 2. + self.extra_width / 2.) * \
@@ -338,179 +333,3 @@ class Trailer:
         # Return patches to animation
         return self.silouette, self.wheels_axis, self.right_wheel, \
             self.left_wheel, self.trailer_axis, self.hitch
-
-
-def phi_predictor(phi, V, L1, L2, L3, delta, dt):
-    new_phi = phi + (V / L3 * sin(phi) + V / L1 * tan(delta) *
-                     (1 + L2 * cos(phi) / L3)) * dt
-    return new_phi
-
-
-class Path():
-
-    def __init__(self, car, trailer, in_position=(5, 5), in_theta1=0, phi=None,
-                 dt=0.01):
-        self.car = car
-        self.trailer = trailer
-        self.position = in_position
-        self.theta1 = in_theta1
-        if phi is None:
-            self.phi = self.theta1 + np.pi
-        else:
-            self.phi = phi
-        self.theta2 = self.phi + self.theta1
-        self.trailer_position = (self.position[0] + self.trailer.L3 *
-                                 cos(self.theta2),
-                                 self.position[1] + self.trailer.L3 *
-                                 sin(self.theta2))
-        self.delta = 0
-        self.dt = dt
-        self.traj = []
-        self.update_traj()
-
-    def update_traj(self):
-        self.traj.append((self.position, self.theta1, self.theta2,
-                         self.delta))
-
-    def add_traj(self, V, delta, steps):
-        self.delta = delta
-        for i in xrange(steps):
-            angle = self.theta1 + delta
-            shift = (V * cos(angle) * self.dt, V * sin(angle) * self.dt)
-            self.position = tuple(sum(x) for x in zip(self.traj[-1][0], shift))
-            self.theta1 += V / self.car.L1 * tan(delta) * self.dt
-            self.phi = phi_predictor(self.phi, V, self.car.L1, self.car.L2,
-                                     self.trailer.L3, delta, self.dt)
-            self.theta2 = self.theta1 - self.phi
-            """
-            self.trailer_position = (self.position[0] + self.trailer.L3 *
-                                     cos(self.theta2),
-                                     self.position[1] + self.trailer.L3 *
-                                     sin(self.theta2))
-            """
-            self.update_traj()
-
-
-def unit_vector(vector):
-    return vector / np.linalg.norm(vector)
-
-
-def angle_between(v1, v2):
-    v1_u = unit_vector(v1)
-    v2_u = unit_vector(v2)
-    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
-
-
-def get_delta_from_phi(delta_phi, phi, V, L1, L2, L3, dt):
-    delta = np.arctan((L1 * (delta_phi * L3 - sin(phi) * dt * V)) / (
-                      dt * V * (L3 + L2 * cos(phi))))
-
-    if delta > np.pi / 2.:
-        delta -= np.pi
-
-    while delta > 1.2:
-        delta -= 0.05
-    while delta < -1.2:
-        delta += 0.05
-
-    return delta
-
-
-class Park():
-
-    def __init__(self, car, trailer, in_position=(5, 5), in_theta1=0,
-                 in_phi=None, fi_position=(30, 30), fi_theta2=0, dt=0.01):
-        self.car = car
-        self.trailer = trailer
-        self.position = in_position
-        self.theta1 = in_theta1
-        if in_phi is None:
-            self.phi = self.theta1 + np.pi
-        else:
-            self.phi = in_phi
-        self.theta2 = self.phi - self.theta1
-        self.delta = 0
-        self.dt = dt
-        self.fi_position = fi_position
-        self.fi_theta2 = fi_theta2
-        self.path = Path(self.car, self.trailer, in_position=self.position,
-                         in_theta1=self.theta1, phi=self.phi, dt=self.dt)
-
-    def controller(self, V, steps):
-        for i in xrange(steps):
-            if max([sum(x) for x in zip(self.fi_position,
-                   [-i for i in self.position])]) < 0.05:
-                break
-            while (np.abs(self.path.phi - np.pi) > 0.1):
-                if self.path.phi < np.pi:
-                    delta_phi = 0.05
-                else:
-                    delta_phi = -0.05
-
-                self.delta = get_delta_from_phi(delta_phi, self.phi, V,
-                                                self.car.L1, self.car.L2,
-                                                self.trailer.L3, self.dt)
-                self.path.add_traj(V, self.delta, 1)
-                self.position = self.path.position
-
-            x_axis = np.array([1, 0])
-            goal_dir = np.array([sum(x) for x in zip(self.fi_position,
-                                [-i for i in self.path.position])])
-            goal_angle = angle_between(x_axis, goal_dir)
-            delta_phi = goal_angle - self.path.theta2
-            self.delta = get_delta_from_phi(delta_phi, self.phi, V,
-                                            self.car.L1, self.car.L2,
-                                            self.trailer.L3, self.dt)
-            while self.delta > 0.5:
-                self.delta -= 0.05
-            while self.delta < -0.5:
-                self.delta += 0.05
-
-            print "delta", self.delta
-            self.path.add_traj(V, self.delta, 1)
-            self.position = self.path.position
-
-
-if __name__ == "__main__":
-    # Model parameters
-    L1 = 2.2
-    L2 = 1.2
-    L3 = 2
-    V = -10
-    delta = 0.5
-
-    # Simulation parameters
-    dt = 0.1
-    steps = 1000
-
-    fig, axis = plt.subplots(1)
-    plt.gca().set_aspect('equal', adjustable='box')
-    axis.set_xlim(0, 30)
-    axis.set_ylim(0, 30)
-    my_car = Car(L1, L2, axis, fig)
-    my_trailer = Trailer(L3, axis, fig)
-
-    """
-    my_path = Path(my_car, my_trailer, in_position=(15, 15))
-
-    for i in xrange(20):
-        my_path.add_traj(V, 0.5, 20)
-        my_path.add_traj(V, -0.5, 20)
-
-    """
-    my_path = Park(my_car, my_trailer, in_position=(15, 15), fi_position=(5, 20))
-    my_path.controller(V, 1000)
-
-    """
-    animation = Animation(my_car, my_trailer, my_path.traj)
-    simulation = FuncAnimation(fig, animation.update, interval=10,
-                               frames=len(my_path.traj),
-                               repeat=True, blit=False)
-    """
-
-    animation = Animation(my_car, my_trailer, my_path.path.traj)
-    simulation = FuncAnimation(fig, animation.update, interval=10,
-                               frames=len(my_path.path.traj),
-                               repeat=False, blit=True)
-
-    animation.show()

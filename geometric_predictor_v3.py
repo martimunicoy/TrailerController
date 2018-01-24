@@ -7,10 +7,10 @@ from animation import Car, Trailer, Animation
 import numpy as np
 
 # Constants
-CONTROLLER_THRESHOLD = 0.5
+CONTROLLER_THRESHOLD = 1.5
 CONTROLLER_MAX_ANGLE = 0.15
-CONTROLLER_DELTA_STEP = 0.08
-CONTROLLER_MAX_DELTA = 0.7
+CONTROLLER_DELTA_STEP = 0.05
+CONTROLLER_MAX_DELTA = 0.8
 
 # Initial variables
 initial_phi = 0
@@ -166,7 +166,7 @@ class Controller():
 
     def fix_large_phi(self, state, V):
         i = 0
-        while (np.abs(state["phi"] - np.pi) > CONTROLLER_MAX_ANGLE / 2):
+        while (np.abs(state["phi"] - np.pi) > CONTROLLER_MAX_ANGLE / 3):
             # Get new delta
             if state["phi"] < np.pi:
                 delta_phi = -1
@@ -286,26 +286,39 @@ class Controller():
                                   self.trailer.L3)) * self.dt
         state["phi"] = new_phi
 
-    def face_trailer_to_dir(self, state, V, goal_angle):
-        delta_theta1 = abs_1st_period_angle(state["theta1"] - goal_angle +
-                                            np.pi)
+    def face_trailer_to_dir(self, state, V, goal_dir, theta1_vec):
+        # Get the rotation direction
+        rotation_direction = np.sign(np.cross(goal_dir, theta1_vec))
 
+        # Get the distance from current position to goal node
+        dist = np.linalg.norm(goal_dir)
+
+        if dist > 12:
+            reduce_amplitude = 1
+        elif dist > 6:
+            reduce_amplitude = 2
+        else:
+            reduce_amplitude = 3
+
+        # Do this loop until getting the car looking at the correct direction
         # Face trailer
-        while (np.abs(state["phi"] - np.pi) < CONTROLLER_MAX_ANGLE / 2):
+        while (np.abs(state["phi"] - np.pi) < CONTROLLER_MAX_ANGLE /
+               (reduce_amplitude * 2)):
+            # Add another condition to turn around until delta_theta1 is 0.5,
+            # for instance (or pi/4)
             # Get new delta
-            if delta_theta1 < np.pi:
+            if rotation_direction < 0:
                 delta_phi = -1
             else:
                 delta_phi = +1
             state["delta"] = \
                 self.move_wheels(state["delta"],
                                  self.get_delta_from_phi(delta_phi, state,
-                                                         V), 2)
+                                                         V), 5)
             # Run simulation step
             self.simulation_step(state, V)
             # Add new state point
             self.add_simulation_state(state)
-
         # Fix phi
         while (np.abs(state["phi"] - np.pi) > CONTROLLER_MAX_ANGLE / 6):
             # Get new delta
@@ -369,7 +382,6 @@ class Controller():
         self.add_simulation_state(state)
 
         # Initialize variables for the loop
-        ref_axis = np.array([1, 0])
         print self.trajectory_points
         checked_points = 0
         found = False
@@ -383,16 +395,11 @@ class Controller():
         for i in xrange(max_steps):
             if i % 100 == 0:
                 print i
-            # Calculate variables according to current position and goal point
+            # Calculate orientation vectors according to current position
             goal_dir = goal_point - state["current_position"]
+            theta1_vec = np.array((cos(state["theta1"]), sin(state["theta1"])))
 
-            # Calculate goal angle and delta phi
-            goal_angle = angle_between(ref_axis, goal_dir)
-
-            delta_theta1 = state["theta1"] - goal_angle - np.pi
-            print "goal_point", goal_point, "current_position", state["current_position"], "goal_dir", goal_dir, "goal_angle", goal_angle, "theta1", state["theta1"], "delta_theta1", delta_theta1
-
-            self.face_trailer_to_dir(state, V, goal_angle)
+            self.face_trailer_to_dir(state, V, goal_dir, theta1_vec)
 
             # Check if we have arrived to the current goal point
             for point in self.points[checked_points:]:
@@ -466,8 +473,8 @@ if __name__ == "__main__":
 
     fig, axis = plt.subplots(1)
     plt.gca().set_aspect('equal', adjustable='box')
-    axis.set_xlim(0, 30)
-    axis.set_ylim(0, 30)
+    axis.set_xlim(-20, 60)
+    axis.set_ylim(0, 60)
     my_car = Car(L1, L2, axis, fig)
     my_trailer = Trailer(L3, axis, fig)
 
@@ -485,22 +492,39 @@ if __name__ == "__main__":
     # Create trajectory points
     point1 = Trajectory(type='linear', num_points=100,
                                in_position=np.array((25, 5)),
-                               fi_position=np.array((5, 10)))
-    point1.draw(axis)
+                               fi_position=np.array((10, 10)))
+
     point2 = Trajectory(type='linear', num_points=100,
-                               in_position=np.array((25, 5)),
-                               fi_position=np.array((5, 10)), in_theta1=np.pi)
-    point2.draw(axis)
+                               in_position=np.array((10, 10)),
+                               fi_position=np.array((5, 25)))
+
 
     point3 = Trajectory(type='linear', num_points=100,
-                               in_position=np.array((5, 10)),
-                               fi_position=np.array((25, 15)))
-    point3.draw(axis)
+                               in_position=np.array((5, 25)),
+                               fi_position=np.array((5, 40)))
+
+    point4 = Trajectory(type='linear', num_points=100,
+                               in_position=np.array((5, 40)),
+                               fi_position=np.array((5, 25)))
+
+    point5 = Trajectory(type='linear', num_points=100,
+                               in_position=np.array((5, 25)),
+                               fi_position=np.array((10, 10)))
+
+    point6 = Trajectory(type='linear', num_points=100,
+                               in_position=np.array((10, 10)),
+                               fi_position=np.array((25, 5)))
+
     # Simulate path
     my_controller = Controller(my_car, my_trailer, dt=0.05, def_steps=100,
                                def_V=V)
-    #my_controller.add_traj(point1, reduce_traj_points_to=0)
     my_controller.add_traj(point1, reduce_traj_points_to=0)
+    my_controller.add_traj(point2, reduce_traj_points_to=0)
+    my_controller.add_traj(point3, reduce_traj_points_to=0)
+    my_controller.add_traj(point4, reduce_traj_points_to=0)
+    my_controller.add_traj(point5, reduce_traj_points_to=0)
+    my_controller.add_traj(point6, reduce_traj_points_to=0)
+
     my_controller.draw(axis)
     my_controller.simulate()
 
@@ -513,7 +537,7 @@ if __name__ == "__main__":
 
     """
     animation = Animation(my_car, my_trailer, my_controller.points)
-    simulation = FuncAnimation(fig, animation.update, interval=100,
+    simulation = FuncAnimation(fig, animation.update, interval=10,
                                frames=len(my_controller.points),
                                repeat=True, blit=True)
 

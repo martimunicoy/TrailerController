@@ -15,10 +15,12 @@ initial_phi = 0
 
 
 def phi_predictor(car, trailer, state, V, dt):
+    print state["phi"]
     new_phi = state["phi"] + (V / trailer.L3 * sin(state["phi"]) + V / car.L1 *
                               tan(state["delta"]) * (1 + car.L2 *
-                                                     cos(state["phi"]) /
-                                                     trailer.L3)) * dt
+                                                      cos(state["phi"]) /
+                                                      trailer.L3)) * dt
+
     state["phi"] = new_phi
 
 
@@ -75,7 +77,8 @@ def turn_around(car, radius, center, state, V, dt):
 
 def staight_ahead(state, V, dt):
     state["current_position"] = state["current_position"] + \
-        np.array(V * cos(state["theta1"]) * dt, V * sin(state["theta1"]) * dt)
+        np.array((V * cos(state["theta1"]) * dt,
+                 V * sin(state["theta1"]) * dt))
 
 
 def get_delta_from_phi(delta_phi, phi, V, L1, L2, L3, dt):
@@ -111,9 +114,9 @@ def fix_large_phi(car, trailer, points, state, dt, V):
     while (np.abs(state["phi"] - np.pi) > CONTROLLER_MAX_ANGLE / 2):
         # Get new delta
         if state["phi"] < np.pi:
-            delta_phi = -1
-        else:
             delta_phi = +1
+        else:
+            delta_phi = -1
         state["delta"] = move_wheels(state["delta"],
                                      get_delta_from_phi(delta_phi,
                                                         state["phi"], V,
@@ -140,7 +143,7 @@ def simulation_step(car, trailer, state, V, dt):
         staight_ahead(state, V, dt)
 
     phi_predictor(car, trailer, state, V, dt)
-    state["theta2"] = state["theta1"] + state["phi"]
+    state["theta2"] = state["theta1"] - state["phi"]
 
 
 def add_state_to_point(state, points):
@@ -193,6 +196,78 @@ def test_turn_around():
     plt.show()
 
 
+def test_zig_zag():
+    # Model parameters
+    L1 = 2.2
+    L2 = 1.2
+    L3 = 2
+    V = -2
+
+    # Simulation parameters
+    dt = 0.05
+    steps = 1000
+
+    # Set the figure and axis for the animation
+    fig, axis = plt.subplots(1)
+    plt.gca().set_aspect('equal', adjustable='box')
+    axis.set_xlim(0, 30)
+    axis.set_ylim(0, 30)
+    my_car = Car(L1, L2, axis, fig)
+    my_trailer = Trailer(L3, axis, fig)
+
+    # Define initial state of the system
+    state = {}
+    state["theta1"] = 0
+    state["phi"] = np.pi + 0.1
+    state["theta2"] = state["theta1"] + state["phi"]
+    state["current_position"] = np.array((15, 15))
+    state["delta"] = 0.2
+
+    # Initiate list to save all state points
+    points = []
+
+    for i in xrange(100):
+        state["delta"] = 0.2
+        # Run simulation step
+        simulation_step(my_car, my_trailer, state, V, dt)
+        # Add new state point
+        add_state_to_point(state, points)
+
+
+    """
+    for j in xrange(100):
+        for i in xrange(10):
+            state["delta"] = 0.1
+
+            # Run simulation step
+            simulation_step(my_car, my_trailer, state, V, dt)
+
+            # Add new state point
+            add_state_to_point(state, points)
+
+        fix_large_phi(my_car, my_trailer, points, state, dt, V)
+
+        for i in xrange(50):
+            state["delta"] = -0.3
+
+            # Run simulation step
+            simulation_step(my_car, my_trailer, state, V, dt)
+
+            # Add new state point
+            add_state_to_point(state, points)
+
+        fix_large_phi(my_car, my_trailer, points, state, dt, V)
+    """
+
+    # Display simulation
+    print(len(points))
+    animation = Animation(my_car, my_trailer, points)
+    simulation = FuncAnimation(fig, animation.update, interval=100,
+                               frames=len(points),
+                               repeat=True, blit=True)
+    animation.show()
+
+
 def test_fix_large_phi():
     # Model parameters
     L1 = 2.2
@@ -214,7 +289,7 @@ def test_fix_large_phi():
 
     # Define initial state of the system
     state = {}
-    state["theta1"] = 0.1
+    state["theta1"] = 0
     state["phi"] = np.pi - 0.1
     state["theta2"] = state["theta1"] + state["phi"]
     state["current_position"] = np.array((15, 15))
@@ -228,8 +303,8 @@ def test_fix_large_phi():
     # Start simulation
     for i in xrange(steps):
         # In case of a large phi angle, fix it
-        if np.abs(state["phi"] - np.pi) > CONTROLLER_MAX_ANGLE:
-            fix_large_phi(my_car, my_trailer, points, state, dt, V)
+        #if np.abs(state["phi"] - np.pi) > CONTROLLER_MAX_ANGLE:
+        #    fix_large_phi(my_car, my_trailer, points, state, dt, V)
 
         # Restrain again delta value, only for testing purposes
         state["delta"] = move_wheels(state["delta"], 0.2)
@@ -243,7 +318,7 @@ def test_fix_large_phi():
     # Display simulation
     print(len(points))
     animation = Animation(my_car, my_trailer, points)
-    simulation = FuncAnimation(fig, animation.update, interval=10,
+    simulation = FuncAnimation(fig, animation.update, interval=100,
                                frames=len(points),
                                repeat=True, blit=True)
     animation.show()
@@ -252,3 +327,4 @@ def test_fix_large_phi():
 if __name__ == "__main__":
     #test_turn_around()
     test_fix_large_phi()
+    #test_zig_zag()

@@ -1,12 +1,16 @@
+#!/usr/bin/env python
+
+# -*- coding: utf-8 -*-
+
+
+# General imports
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle, Circle
 from matplotlib.transforms import Affine2D
 from numpy import sin, cos
 
-# Constants
-RAD_TO_DEG = 57.2957795131
 
-
+# Class definitions
 class Animation:
 
     def __init__(self, car, trailer, positions):
@@ -212,7 +216,6 @@ class Car:
             self.rear_left_wheel, self.car_axis, self.hitch
 
 
-# Change linewidth by height!
 class Trailer:
 
     def __init__(self, L3, axis, fig, trailer_height=2.2, hitch_length=0.5,

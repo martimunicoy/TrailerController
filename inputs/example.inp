@@ -1,0 +1,40 @@
+###############################################################################
+# This is an example of input file
+###############################################################################
+# Lines starting with '#' are ignored
+###############################################################################
+# For those parameters that are not modified in this file, default values will
+# be used. Default values are defined in constants.py file
+###############################################################################
+# Below, there is a list of all possible parameters:
+# Fields must be separated by a white space
+###############################################################################
+# To change the geometry of both the car and the trailer:
+# DISTANCE value (float)
+# For example:
+# L1 2.2
+# L2 1.2
+# L3 2
+###############################################################################
+# To change the initial state of the system:
+# ANGLE value (float)
+# For example:
+# THETA1 0.5
+# PHI 3.8
+###############################################################################
+# To change the trajectory points:
+# POINTS (value,value) (value,value) ...
+# Be aware that coordinates are separated by a single comma and points are
+# separated between them by a white space
+# For example:
+# POINTS (5,5) (10,20) (30,5)
+###############################################################################
+# To change animation parameters:
+# REPEAT boolean (true/false)
+# INTERVAL value (integer)
+# For example,
+# REPEAT true
+# INTERVAL 20
+###############################################################################
+# This input file will only modify the trajectory points:
+POINTS (10,5) (15,30) (30,25)

@@ -50,3 +50,6 @@ You can find an example of an appropriate input file in _inputs/example.inp_
 ## References
 
 * [1] Nilsson, J., Abraham, S. (2013). Trailer Parking Assist (TPA) (Doctoral dissertation). Chalmers University of Technology
+
+## License
+This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details

@@ -18,12 +18,12 @@ To tackle this last issue, we designed a controller for the system.
 It uses the same mathematical model to modify dynamically the behaviour of the system to follow a particular trajectory.
 
 ## Package contents
-* _\\_\\_init\\_\\_.py_: defines this Python package
-* _simulate.py_: script to straightforwardly run a simulation
-* _controller.py_: script that handles the system's controller
-* _animation.py_: script that handles the display objects and sets the animation
-* _util.py_: script with general useful functions
-* _constants.py_: definition of constants and default parameters for the whole package
+* _\_\_init\_\_.py_ : defines this Python package
+* _simulate.py_ : script to straightforwardly run a simulation
+* _controller.py_ : script that handles the system's controller
+* _animation.py_ : script that handles the display objects and sets the animation
+* _util.py_ : script with general useful functions
+* _constants.py_ : definition of constants and default parameters for the whole package
 
 ## Prerequisites
 This script have been developed and tested with the following Python libraries:

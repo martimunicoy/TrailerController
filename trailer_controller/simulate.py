@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # -*- coding: utf-8 -*-
 
 
@@ -10,12 +9,16 @@ from matplotlib.animation import FuncAnimation
 # Custom imports
 from animation import Car, Trailer, Animation
 from controller import Controller
-from util import cl_parser, file_parser
+from util import cl_parser, file_parser, print_license_header
+
 import constants as co
 
 
 # Main behavior
 if __name__ == "__main__":
+    # Print license header
+    print_license_header()
+
     # Parse command-line arguments
     input_file = cl_parser()
     parsed_args = file_parser(input_file)

@@ -2,4 +2,4 @@
 
 # -*- coding: utf-8 -*-
 
-python ./src/simulate.py $@
+python ./trailer_controller/simulate.py $@

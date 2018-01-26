@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-
 # -*- coding: utf-8 -*-
-
 
 # General imports
 import numpy as np
 import argparse
-import re
 
 # Custom imports
 import constants as co
@@ -65,3 +62,22 @@ def file_parser(input_file):
                 if len(fields) == 2:
                     file_args[fields[0].upper()] = fields[1]
     return file_args
+
+
+def print_license_header():
+    print ("\n"
+           "                        <Car-Trailer System Controller>\n  Copyrig"
+           "ht (C) <2018> <Hernández, A., Massip, D., Municoy, M., Niemann, J."
+           "H.>\n\n     Contact the authors at: aldomann.designs@gmail.com\n  "
+           "                           david26694@gmail.com\n                 "
+           "            mail@martimunicoy.com\n                             ja"
+           "nhendrik.niemann@e-campus.uab.cat\n\n     This program is free sof"
+           "tware: you can redistribute it and/or modify\n     it under the te"
+           "rms of the GNU General Public License as published by\n     the Fr"
+           "ee Software Foundation, either version 3 of the License, or\n     "
+           "(at your option) any later version.\n\n     This program is distri"
+           "buted in the hope that it will be useful,\n     but WITHOUT ANY WA"
+           "RRANTY; without even the implied warranty of\n     MERCHANTABILITY"
+           " or FITNESS FOR A PARTICULAR PURPOSE.  See the\n     GNU General P"
+           "ublic License for more details.\n\n"
+           )

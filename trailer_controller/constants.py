@@ -31,3 +31,8 @@ STEPS = 1000
 # Animation default parameters
 ANIMATION_REPEAT = False
 ANIMATION_INTERVAL = 50
+ANIMATION_LABEL = "Simulation of a car-trailer system"
+ANIMATION_DPI = 200
+ANIMATION_FPS = 30
+ANIMATION_BITRATE = 3600
+ANIMATION_DEFNAME = "TCsimulation.mp4"

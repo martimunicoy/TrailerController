@@ -6,7 +6,11 @@
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle, Circle
 from matplotlib.transforms import Affine2D
+from matplotlib.animation import writers
 from numpy import sin, cos
+
+# Custom imports
+import constants as co
 
 
 # Class definitions
@@ -27,6 +31,8 @@ class Animation:
         return []
 
     def show(self):
+        print "Displaying animation on screen..."
+        print "(close the window to exit the program)"
         plt.show()
 
 
@@ -335,3 +341,20 @@ class Trailer:
         # Return patches to animation
         return self.silouette, self.wheels_axis, self.right_wheel, \
             self.left_wheel, self.trailer_axis, self.hitch
+
+
+# Function definitions
+def save(simulation, filename=None):
+    if filename is None:
+        filename = co.ANIMATION_DEFNAME
+    elif filename.split(".")[-1] != "mp4":
+        if len(filename.split(".")) == 1:
+            filename = filename + ".mp4"
+        else:
+            filename = filename.split(".")[:-1] + ".mp4"
+    print "Saving animation to {}".format(filename)
+    Writer = writers['ffmpeg']
+    writer = Writer(fps=co.ANIMATION_FPS,
+                    metadata=dict(artist=co.ANIMATION_LABEL),
+                    bitrate=co.ANIMATION_BITRATE)
+    simulation.save(filename, writer=writer, dpi=co.ANIMATION_DPI)

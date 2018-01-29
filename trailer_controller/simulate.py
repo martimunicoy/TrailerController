@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 # Custom imports
-from animation import Car, Trailer, Animation
+from animation import Car, Trailer, Animation, save
 from controller import Controller
 from util import cl_parser, file_parser, print_license_header
 
@@ -112,4 +112,10 @@ if __name__ == "__main__":
     simulation = FuncAnimation(fig, animation.update, interval=interval,
                                frames=len(my_controller.state_points),
                                repeat=repeat, blit=True)
+
+    # Save simulation to a file
+    if "SAVE" in parsed_args:
+        save(simulation, parsed_args["SAVE"])
+
+    # Show animation on screen
     animation.show()

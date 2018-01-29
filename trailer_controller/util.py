@@ -57,6 +57,12 @@ def file_parser(input_file):
                     point = point.strip("(,),[,]")
                     point = np.array([float(i) for i in point.split(",")])
                     file_args["POINTS"].append(point)
+            elif line.upper().startswith("SAVE"):
+                fields = line.split()
+                if len(fields) > 1:
+                    file_args[fields[0].upper()] = fields[1]
+                else:
+                    file_args[fields[0].upper()] = None
             else:
                 fields = line.split()
                 if len(fields) == 2:

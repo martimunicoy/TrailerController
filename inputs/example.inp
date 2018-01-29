@@ -36,5 +36,11 @@
 # REPEAT true
 # INTERVAL 20
 ###############################################################################
+# To save animation:
+# SAVE filename.mp4
+# Be aware that filename must end with an mp4 extension. Otherwise, extension
+# will be changed
+###############################################################################
 # This input file will only modify the trajectory points:
 POINTS (10,5) (15,30) (30,25)
+SAVE

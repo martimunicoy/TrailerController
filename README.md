@@ -31,6 +31,9 @@ This script have been developed and tested with the following Python libraries:
 * Numpy 1.13.1
 * Matplotlib 2.0.2
 
+To save the animation as a mp4 video file, the following Python library is also required:
+* ffmpeg 3.4.1
+
 No other Python versions nor library versions have been tested so far.
 
 ## Instructions

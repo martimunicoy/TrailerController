@@ -250,7 +250,7 @@ def get_delta_from_phi(delta_phi, ctrl):
 
 
 def move_wheels(old_delta, delta, speed):
-    gain = min(np.abs(delta), co.CONTROLLER_DELTA_STEP)
+    gain = min(np.abs(delta - old_delta), co.CONTROLLER_DELTA_STEP)
 
     if delta > old_delta:
         delta = old_delta + gain * speed

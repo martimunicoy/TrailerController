@@ -26,8 +26,17 @@ if __name__ == "__main__":
     # Set display configuration
     fig, axis = plt.subplots(1)
     plt.gca().set_aspect('equal', adjustable='box')
-    axis.set_xlim(0, 40)
-    axis.set_ylim(0, 40)
+    if "X_AXIS" in parsed_args:
+        axis.set_xlim(float(parsed_args["X_AXIS"][0]),
+                      float(parsed_args["X_AXIS"][1]))
+    else:
+        axis.set_xlim(0, 40)
+
+    if "Y_AXIS" in parsed_args:
+        axis.set_ylim(float(parsed_args["Y_AXIS"][0]),
+                      float(parsed_args["Y_AXIS"][1]))
+    else:
+        axis.set_ylim(0, 40)
 
     # Set variables according to either input values or default values
     # Set L1

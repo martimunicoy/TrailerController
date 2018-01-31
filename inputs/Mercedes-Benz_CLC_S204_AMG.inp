@@ -7,6 +7,9 @@ L3 2
 # Initial state
 THETA1 0
 PHI 3.14
+# Set display settings
+X_AXIS 5 25
+Y_AXIS 0 20
 # Points
 POINTS (20,5) (10,15)
 # Save video file

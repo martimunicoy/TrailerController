@@ -4,6 +4,7 @@
 
 # General imports
 import numpy as np
+from random import uniform
 from numpy import sin, tan, cos, arctan
 
 # Custom imports
@@ -162,6 +163,11 @@ class Controller():
 
 
 # Functions used by the controller class are found below, sorted alphabetically
+def add_noise(delta):
+    noise = uniform(-1, 1)
+    return delta + co.CONTROLLER_MAX_NOISE * noise
+
+
 def face_trailer_to_dir(ctrl, goal_dir, theta1_vec):
     # Get the rotation direction performing the cross product between both
     # vectors. Its sign will indicate the suitable rotation direction
@@ -182,7 +188,7 @@ def face_trailer_to_dir(ctrl, goal_dir, theta1_vec):
 
     # Face trailer
     while (np.abs(ctrl.state["phi"] - np.pi) < co.CONTROLLER_MAX_ANGLE /
-           (constrain_lvl * 2)):
+           float(constrain_lvl * 2)):
         # Add another condition to turn around until delta_theta1 is 0.5,
         # for instance (or pi/4)
         # Get new delta
@@ -199,7 +205,7 @@ def face_trailer_to_dir(ctrl, goal_dir, theta1_vec):
         ctrl.add_simulation_state()
 
     # Fix phi
-    while (np.abs(ctrl.state["phi"] - np.pi) > co.CONTROLLER_MAX_ANGLE / 6):
+    while (np.abs(ctrl.state["phi"] - np.pi) > co.CONTROLLER_MAX_ANGLE / 6.):
         # Get new delta
         if ctrl.state["phi"] < np.pi:
             delta_phi = -1
@@ -275,7 +281,7 @@ def phi_predictor(ctrl):
          (1 + ctrl.car.L2 * cos(ctrl.state["phi"]) /
          ctrl.trailer.L3)) * ctrl.dt
 
-    ctrl.state["phi"] = new_phi
+    ctrl.state["phi"] = add_noise(new_phi)
 
 
 def straight_ahead(ctrl):

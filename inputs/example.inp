@@ -42,5 +42,5 @@
 # will be changed
 ###############################################################################
 # This input file will only modify the trajectory points:
-POINTS (10,5) (15,30) (30,25)
-SAVE
+POINTS (15,5) (20,30) (35,25)
+#SAVE

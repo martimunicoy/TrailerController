@@ -63,6 +63,10 @@ def file_parser(input_file):
                     file_args[fields[0].upper()] = fields[1]
                 else:
                     file_args[fields[0].upper()] = None
+            elif line.upper()[2:].startswith("AXIS"):
+                fields = line.split()
+                if len(fields) == 3:
+                    file_args[fields[0].upper()] = (fields[1], fields[2])
             else:
                 fields = line.split()
                 if len(fields) == 2:
